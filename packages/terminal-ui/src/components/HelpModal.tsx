@@ -73,14 +73,21 @@ export const HelpModal: React.FC<Props> = ({ theme }) => {
           <Text bold color={theme.secondary}>
             s
           </Text>{' '}
-          Toggle sorting column (CPU, Memory, PID, Name)
+          Cycle sorting column (CPU, Memory, Handles, Threads, PID, Name)
+        </Text>
+        <Text>
+          {' '}
+          <Text bold color={theme.secondary}>
+            h
+          </Text>{' '}
+          Sort processes immediately by Open Handles
         </Text>
         <Text>
           {' '}
           <Text bold color={theme.secondary}>
             k
           </Text>{' '}
-          Kill / Terminate selected process (with confirmation)
+          Kill / Terminate selected process (fast Win32 FFI / taskkill)
         </Text>
         <Text>
           {' '}

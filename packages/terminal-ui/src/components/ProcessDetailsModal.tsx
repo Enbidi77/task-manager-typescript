@@ -79,12 +79,44 @@ export const ProcessDetailsModal: React.FC<Props> = ({ process, theme }) => {
             {formatBytes(process.memoryBytes)} ({formatPercent(process.memoryPercent)})
           </Text>
         </Text>
+        {process.privateWorkingSetBytes?.status === 'available' && (
+          <Text>
+            <Text bold color={theme.accent}>
+              Private Working Set:{' '}
+            </Text>
+            <Text>{formatBytes(process.privateWorkingSetBytes.value)}</Text>
+          </Text>
+        )}
+        {process.peakWorkingSetBytes?.status === 'available' && (
+          <Text>
+            <Text bold color={theme.accent}>
+              Peak Working Set:{' '}
+            </Text>
+            <Text>{formatBytes(process.peakWorkingSetBytes.value)}</Text>
+          </Text>
+        )}
         {process.virtualMemoryBytes && (
           <Text>
             <Text bold color={theme.accent}>
               Virtual Memory:{' '}
             </Text>
             <Text>{formatBytes(process.virtualMemoryBytes)}</Text>
+          </Text>
+        )}
+        <Text>
+          <Text bold color={theme.accent}>
+            Open Handles:{' '}
+          </Text>
+          <Text>
+            {process.handles?.status === 'available' ? String(process.handles.value) : 'N/A'}
+          </Text>
+        </Text>
+        {process.pageFaults?.status === 'available' && (
+          <Text>
+            <Text bold color={theme.accent}>
+              Page Faults:{' '}
+            </Text>
+            <Text>{process.pageFaults.value.toLocaleString()}</Text>
           </Text>
         )}
         <Text>

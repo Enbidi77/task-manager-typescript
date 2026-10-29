@@ -25,11 +25,21 @@ export interface PowerSensor {
   watts: number;
 }
 
+export interface PowerStatusMetrics {
+  isAcOnline: boolean;
+  hasBattery: boolean;
+  batteryPercent: number | null;
+  batteryLifeRemainingSeconds: number | null;
+  isCharging: boolean;
+  statusDescription: string;
+}
+
 export interface HardwareMetrics {
   cpuPackageTemp: MetricValue<number>;
   cpuCoreTemps: TemperatureSensor[];
   fans: FanSensor[];
   voltages: VoltageSensor[];
   powers: PowerSensor[];
+  powerStatus?: MetricValue<PowerStatusMetrics>;
   timestamp: number;
 }

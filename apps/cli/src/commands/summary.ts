@@ -33,6 +33,8 @@ export async function runSummary(options: SummaryOptions = {}): Promise<void> {
   }
 
   const { os, cpu, memory, disk, network, gpu, hardware, totalProcessCount } = snapshot;
+  const km = memory.kernelMemory?.status === 'available' ? memory.kernelMemory.value : null;
+  const pwr = hardware.powerStatus?.status === 'available' ? hardware.powerStatus.value : null;
 
   // eslint-disable-next-line no-console
   console.log(`
@@ -46,6 +48,7 @@ ${chalk.yellow.bold('Operating System:')}
   Kernel:      ${chalk.white(os.release)}
   Uptime:      ${chalk.white(formatDuration(os.uptimeSeconds))}
   Processes:   ${chalk.white(totalProcessCount)} active
+${km ? `  Telemetry:   ${chalk.white(km.systemHandles.toLocaleString())} handles | ${chalk.white(km.systemThreads.toLocaleString())} threads` : ''}
 
 ${chalk.yellow.bold('Processor (CPU):')}
   Model:       ${chalk.white(cpu.hardware.brand)}
@@ -58,6 +61,14 @@ ${chalk.yellow.bold('Memory (RAM):')}
   Physical:    ${formatBytes(memory.usedBytes)} / ${formatBytes(memory.totalBytes)} (${formatPercent(memory.utilization)})
   Available:   ${formatBytes(memory.availableBytes)}
   Swap/Page:   ${formatBytes(memory.swap.usedBytes)} / ${formatBytes(memory.swap.totalBytes)} (${formatPercent(memory.swap.utilization)})
+${km ? `  Paged Pool:  ${formatBytes(km.pagedPoolBytes)} | Non-Paged: ${formatBytes(km.nonPagedPoolBytes)} | Cache: ${formatBytes(km.systemCacheBytes)}` : ''}
+${
+  pwr
+    ? `
+${chalk.yellow.bold('Power & Battery:')}
+  Status:      ${chalk.white(pwr.statusDescription)} (AC Line: ${pwr.isAcOnline ? 'Online' : 'Offline'}${pwr.batteryPercent !== null ? `, Battery: ${pwr.batteryPercent}%` : ''})`
+    : ''
+}
 
 ${chalk.yellow.bold('Storage & Live I/O:')}
   Read Speed:  ${formatBytesPerSec(disk.io.readBytesPerSec)}

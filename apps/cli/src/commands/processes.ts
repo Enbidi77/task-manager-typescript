@@ -25,7 +25,9 @@ export async function runProcesses(options: ProcessesOptions = {}): Promise<void
 
   const limit = options.limit ? parseInt(options.limit, 10) : 20;
   const sortField: ProcessSortField = (
-    ['cpu', 'memory', 'pid', 'name', 'threads'].includes(options.sort || '') ? options.sort : 'cpu'
+    ['cpu', 'memory', 'pid', 'name', 'threads', 'handles'].includes(options.sort || '')
+      ? options.sort
+      : 'cpu'
   ) as ProcessSortField;
 
   const sorted = [...snapshot.processes].sort((a, b) => {
@@ -42,6 +44,11 @@ export async function runProcesses(options: ProcessesOptions = {}): Promise<void
         const aT = a.threads.status === 'available' ? a.threads.value : 0;
         const bT = b.threads.status === 'available' ? b.threads.value : 0;
         return bT - aT;
+      }
+      case 'handles': {
+        const aH = a.handles?.status === 'available' ? a.handles.value : 0;
+        const bH = b.handles?.status === 'available' ? b.handles.value : 0;
+        return bH - aH;
       }
       default:
         return b.cpuPercent - a.cpuPercent;
@@ -63,15 +70,16 @@ export async function runProcesses(options: ProcessesOptions = {}): Promise<void
     ),
   );
 
-  const header = `${pad('PID', 8)} ${pad('NAME', 26)} ${pad('CPU %', 8, 'right')} ${pad('MEMORY', 12, 'right')} ${pad('MEM %', 8, 'right')} ${pad('THREADS', 9, 'right')} ${pad('STATE', 10)} ${pad('USER', 18)}`;
+  const header = `${pad('PID', 8)} ${pad('NAME', 24)} ${pad('CPU %', 8, 'right')} ${pad('MEMORY', 12, 'right')} ${pad('HANDLES', 9, 'right')} ${pad('THREADS', 8, 'right')} ${pad('STATE', 9)} ${pad('USER', 16)}`;
   // eslint-disable-next-line no-console
   console.log(chalk.bold.underline(header));
 
   for (const p of selected) {
     const threads = p.threads.status === 'available' ? String(p.threads.value) : '-';
+    const handles = p.handles?.status === 'available' ? String(p.handles.value) : '-';
     const cpuColor = p.cpuPercent > 30 ? chalk.red : p.cpuPercent > 10 ? chalk.yellow : chalk.white;
 
-    const row = `${pad(String(p.pid), 8)} ${pad(truncate(p.name, 25), 26)} ${cpuColor(pad(formatPercent(p.cpuPercent), 8, 'right'))} ${pad(formatBytes(p.memoryBytes), 12, 'right')} ${pad(formatPercent(p.memoryPercent), 8, 'right')} ${pad(threads, 9, 'right')} ${pad(p.state, 10)} ${chalk.gray(pad(truncate(p.user || '', 17), 18))}`;
+    const row = `${pad(String(p.pid), 8)} ${pad(truncate(p.name, 23), 24)} ${cpuColor(pad(formatPercent(p.cpuPercent), 8, 'right'))} ${pad(formatBytes(p.memoryBytes), 12, 'right')} ${pad(handles, 9, 'right')} ${pad(threads, 8, 'right')} ${pad(p.state, 9)} ${chalk.gray(pad(truncate(p.user || '', 15), 16))}`;
     // eslint-disable-next-line no-console
     console.log(row);
   }

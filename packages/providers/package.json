@@ -21,6 +21,7 @@
     "@taskpulse/core": "workspace:*",
     "@taskpulse/logging": "workspace:*",
     "@taskpulse/shared": "workspace:*",
+    "koffi": "^3.3.5",
     "systeminformation": "^5.25.11"
   },
   "devDependencies": {

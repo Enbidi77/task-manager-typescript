@@ -69,6 +69,24 @@ ${chalk.yellow.bold('CPU Hardware:')}
 ${chalk.yellow.bold('System Memory:')}
   Physical Total:   ${formatBytes(memory.totalBytes)}
   Swap / Pagefile:  ${formatBytes(memory.swap.totalBytes)}
+${
+  memory.kernelMemory?.status === 'available'
+    ? `  Paged Pool:       ${formatBytes(memory.kernelMemory.value.pagedPoolBytes)}
+  Non-Paged Pool:   ${formatBytes(memory.kernelMemory.value.nonPagedPoolBytes)}
+  System Cache:     ${formatBytes(memory.kernelMemory.value.systemCacheBytes)}
+  System Handles:   ${memory.kernelMemory.value.systemHandles.toLocaleString()}
+  System Threads:   ${memory.kernelMemory.value.systemThreads.toLocaleString()}`
+    : ''
+}
+${
+  hardware.powerStatus?.status === 'available'
+    ? `
+${chalk.yellow.bold('Power & Battery Status:')}
+  Status:           ${hardware.powerStatus.value.statusDescription}
+  AC Connected:     ${hardware.powerStatus.value.isAcOnline ? 'Yes' : 'No'}
+  Battery Present:  ${hardware.powerStatus.value.hasBattery ? 'Yes' : 'No'}`
+    : ''
+}
 
 ${chalk.yellow.bold('Storage Devices & Controllers:')}
 ${disk.devices.map((d) => `  [${d.device}] ${d.name} (${d.type}, ${formatBytes(d.sizeBytes)})`).join('\n') || '  None detected'}

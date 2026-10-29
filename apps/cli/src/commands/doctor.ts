@@ -1,6 +1,7 @@
 import os from 'node:os';
 import chalk from 'chalk';
 import { createServiceContainer } from '../di/container.js';
+import { isWin32NativeAvailable, getWin32PerformanceInfo } from '@taskpulse/providers';
 
 export async function runDoctor(): Promise<void> {
   // eslint-disable-next-line no-console
@@ -87,6 +88,32 @@ export async function runDoctor(): Promise<void> {
     console.log(
       `[${chalk.green('PASS')}] Process Enumerator: Enumerated ${snapshot.totalProcessCount} active OS processes`,
     );
+
+    // 5. Native Win32 FFI Check
+    if (isWin) {
+      const isNative = isWin32NativeAvailable();
+      const perf = getWin32PerformanceInfo();
+      if (isNative && perf) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[${chalk.green('PASS')}] Win32 Native FFI (koffi): Active — ${perf.systemHandles.toLocaleString()} system handles, ${perf.systemThreads.toLocaleString()} threads, ${Math.round(perf.pagedPoolBytes / (1024 * 1024))}MB paged pool`,
+        );
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[${chalk.yellow('WARN')}] Win32 Native FFI (koffi): Unavailable, falling back to portable userland queries`,
+        );
+      }
+    }
+
+    // 6. Power / Battery Check
+    const pwr = snapshot.hardware.powerStatus;
+    if (pwr && pwr.status === 'available') {
+      // eslint-disable-next-line no-console
+      console.log(
+        `[${chalk.green('PASS')}] Power Telemetry: ${pwr.value.statusDescription} (AC: ${pwr.value.isAcOnline ? 'Online' : 'Offline'})`,
+      );
+    }
   } else {
     // eslint-disable-next-line no-console
     console.log(`[${chalk.red('FAIL')}] Provider collection failed.`);

@@ -136,6 +136,15 @@ export class MockMemoryMonitor implements IMemoryMonitor {
         commitLimitBytes: 40 * 1024 * 1024 * 1024,
         commitUtilization: 50,
       }),
+      kernelMemory: available({
+        pagedPoolBytes: 650 * 1024 * 1024,
+        nonPagedPoolBytes: 450 * 1024 * 1024,
+        systemCacheBytes: 1024 * 1024 * 1024,
+        commitPeakBytes: 25 * 1024 * 1024 * 1024,
+        systemHandles: 145200,
+        systemThreads: 3450,
+        processCount: 290,
+      }),
       platformSemantics: {
         os: 'win32',
         description: 'Physical RAM and Windows Commit Charge',
@@ -357,6 +366,14 @@ export class MockHardwareMonitor implements IHardwareMonitor {
       fans: [{ id: 'f0', label: 'CPU Fan', rpm: 1250 }],
       voltages: [{ id: 'v0', label: 'CPU Vcore', volts: 1.25 }],
       powers: [{ id: 'p0', label: 'CPU Package', watts: 65.4 }],
+      powerStatus: available({
+        isAcOnline: true,
+        hasBattery: true,
+        batteryPercent: 92,
+        batteryLifeRemainingSeconds: 14400,
+        isCharging: false,
+        statusDescription: 'Plugged in (92%)',
+      }),
       timestamp: Date.now(),
     };
   }
@@ -388,6 +405,8 @@ export class MockProcessMonitor implements IProcessMonitor {
       threads: available(18),
       state: 'running',
       user: 'Administrator',
+      handles: available(185),
+      privateWorkingSetBytes: available(190 * 1024 * 1024),
       executablePath: available('C:\\Program Files\\nodejs\\node.exe'),
       diskIo: available({ readBytesPerSec: 1024 * 100, writeBytesPerSec: 1024 * 50 }),
       networkIo: available({ rxBytesPerSec: 5000, txBytesPerSec: 2000 }),
@@ -401,6 +420,8 @@ export class MockProcessMonitor implements IProcessMonitor {
       threads: available(42),
       state: 'running',
       user: 'User',
+      handles: available(850),
+      privateWorkingSetBytes: available(780 * 1024 * 1024),
       executablePath: available('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'),
       diskIo: available({ readBytesPerSec: 50000, writeBytesPerSec: 10000 }),
       networkIo: available({ rxBytesPerSec: 120000, txBytesPerSec: 45000 }),
@@ -414,6 +435,8 @@ export class MockProcessMonitor implements IProcessMonitor {
       threads: available(26),
       state: 'running',
       user: 'User',
+      handles: available(340),
+      privateWorkingSetBytes: available(310 * 1024 * 1024),
       executablePath: available(
         'C:\\Users\\User\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe',
       ),

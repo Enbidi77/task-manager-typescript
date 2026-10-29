@@ -3,6 +3,7 @@ import { Box, Text } from 'ink';
 import { VIEWS, ViewId } from '../navigation/views.js';
 import { ColorTheme } from '../theme/theme.js';
 import { formatDuration } from '@taskpulse/shared';
+import { MetricValue, PowerStatusMetrics } from '@taskpulse/core';
 
 interface Props {
   activeView: ViewId;
@@ -10,6 +11,7 @@ interface Props {
   uptimeSeconds: number;
   isPaused: boolean;
   hostname: string;
+  powerStatus?: MetricValue<PowerStatusMetrics>;
 }
 
 export const Header: React.FC<Props> = ({
@@ -18,7 +20,19 @@ export const Header: React.FC<Props> = ({
   uptimeSeconds,
   isPaused,
   hostname,
+  powerStatus,
 }) => {
+  let powerBadge = '';
+  if (powerStatus && powerStatus.status === 'available') {
+    const p = powerStatus.value;
+    if (p.hasBattery) {
+      const icon = p.isCharging ? '⚡' : '🔋';
+      powerBadge = `${icon} ${p.batteryPercent ?? 0}%`;
+    } else {
+      powerBadge = '⚡ AC';
+    }
+  }
+
   return (
     <Box flexDirection="column" borderStyle="single" borderColor={theme.border} paddingX={1}>
       {/* Top Title & System Row */}
@@ -32,6 +46,13 @@ export const Header: React.FC<Props> = ({
           <Text color={theme.muted}> (up {formatDuration(uptimeSeconds)})</Text>
         </Box>
         <Box>
+          {powerBadge ? (
+            <Box marginRight={2}>
+              <Text bold color={theme.accent}>
+                [{powerBadge}]
+              </Text>
+            </Box>
+          ) : null}
           {isPaused ? (
             <Text bold color={theme.warning}>
               [PAUSED]

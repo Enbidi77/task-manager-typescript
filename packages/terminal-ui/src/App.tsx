@@ -171,10 +171,13 @@ export const App: React.FC<AppProps> = ({ coordinator, config }) => {
       } else if (input === '/') {
         setSearchMode(true);
       } else if (input === 's') {
-        const fields: ProcessSortField[] = ['cpu', 'memory', 'pid', 'name', 'threads'];
+        const fields: ProcessSortField[] = ['cpu', 'memory', 'pid', 'name', 'threads', 'handles'];
         const nextIdx = (fields.indexOf(sortField) + 1) % fields.length;
         setSortField(fields[nextIdx]);
         setStatusNotice(`Sorted by ${fields[nextIdx].toUpperCase()}`);
+      } else if (input === 'h') {
+        setSortField('handles');
+        setStatusNotice('Sorted by HANDLES (Win32 open handles)');
       } else if (input === 'S') {
         setSortDirection((dir) => (dir === 'asc' ? 'desc' : 'asc'));
         setStatusNotice('Toggled sort direction');
@@ -216,6 +219,7 @@ export const App: React.FC<AppProps> = ({ coordinator, config }) => {
         uptimeSeconds={snapshot.os.uptimeSeconds}
         isPaused={isPaused}
         hostname={snapshot.os.hostname}
+        powerStatus={snapshot.hardware.powerStatus}
       />
 
       {/* Status Notice Toast */}

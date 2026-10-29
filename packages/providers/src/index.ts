@@ -6,3 +6,4 @@ export * from './gpu-provider.js';
 export * from './hardware-provider.js';
 export * from './process-provider.js';
 export * from './system-info-provider.js';
+export * from './windows/native-adapter.js';

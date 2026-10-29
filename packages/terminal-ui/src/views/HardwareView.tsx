@@ -130,6 +130,70 @@ export const HardwareView: React.FC<Props> = ({ hardware, theme }) => {
         </Box>
       </Box>
 
+      {/* Battery & Power Supply Telemetry Card */}
+      {hardware.powerStatus && hardware.powerStatus.status === 'available' ? (
+        <Box
+          borderStyle="single"
+          borderColor={theme.border}
+          paddingX={1}
+          marginBottom={1}
+          flexDirection="column"
+        >
+          <Box justifyContent="space-between" marginBottom={1}>
+            <Text bold color={theme.primary}>
+              BATTERY & POWER SUPPLY TELEMETRY (Win32 FFI)
+            </Text>
+            <Text bold color={theme.accent}>
+              {hardware.powerStatus.value.statusDescription}
+            </Text>
+          </Box>
+          <Box justifyContent="space-between">
+            <Box flexDirection="column" width="50%">
+              <Text>
+                <Text color={theme.muted}>AC Line Status: </Text>
+                <Text
+                  bold
+                  color={hardware.powerStatus.value.isAcOnline ? theme.success : theme.warning}
+                >
+                  {hardware.powerStatus.value.isAcOnline
+                    ? 'ONLINE (Plugged In)'
+                    : 'OFFLINE (On Battery)'}
+                </Text>
+              </Text>
+              <Text>
+                <Text color={theme.muted}>Battery Present: </Text>
+                <Text>{hardware.powerStatus.value.hasBattery ? 'Yes' : 'No (Desktop PC)'}</Text>
+              </Text>
+            </Box>
+            <Box flexDirection="column" width="50%">
+              {hardware.powerStatus.value.hasBattery ? (
+                <>
+                  <Text>
+                    <Text color={theme.muted}>Battery Level: </Text>
+                    <Text bold color={theme.primary}>
+                      {hardware.powerStatus.value.batteryPercent !== null
+                        ? `${hardware.powerStatus.value.batteryPercent}%`
+                        : 'Unknown'}
+                    </Text>
+                  </Text>
+                  <Text>
+                    <Text color={theme.muted}>Charging Status: </Text>
+                    <Text
+                      bold
+                      color={hardware.powerStatus.value.isCharging ? theme.accent : theme.muted}
+                    >
+                      {hardware.powerStatus.value.isCharging ? 'Charging' : 'Not Charging'}
+                    </Text>
+                  </Text>
+                </>
+              ) : (
+                <Text color={theme.muted}>Continuous mains power supply</Text>
+              )}
+            </Box>
+          </Box>
+        </Box>
+      ) : null}
+
       {/* Driver / Privileges Note */}
       <Box borderStyle="single" borderColor={theme.border} paddingX={1}>
         <Text color={theme.muted}>

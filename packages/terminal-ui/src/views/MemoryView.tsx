@@ -114,6 +114,57 @@ export const MemoryView: React.FC<Props> = ({ memory, history, topProcesses, the
         </Box>
       </Box>
 
+      {/* Windows Kernel Memory Pools & System Telemetry Card */}
+      {memory.kernelMemory?.status === 'available' ? (
+        <Box
+          borderStyle="single"
+          borderColor={theme.border}
+          paddingX={1}
+          marginBottom={1}
+          flexDirection="column"
+        >
+          <Box justifyContent="space-between" marginBottom={1}>
+            <Text bold color={theme.primary}>
+              WINDOWS KERNEL MEMORY POOLS & SYSTEM TELEMETRY (Win32 FFI)
+            </Text>
+            <Text color={theme.accent}>
+              Handles: {memory.kernelMemory.value.systemHandles.toLocaleString()} | Threads:{' '}
+              {memory.kernelMemory.value.systemThreads.toLocaleString()}
+            </Text>
+          </Box>
+          <Box justifyContent="space-between">
+            <Box flexDirection="column" width="50%">
+              <Text>
+                <Text color={theme.muted}>Paged Pool: </Text>
+                <Text bold color={theme.primary}>
+                  {formatBytes(memory.kernelMemory.value.pagedPoolBytes)}
+                </Text>
+              </Text>
+              <Text>
+                <Text color={theme.muted}>Non-Paged Pool: </Text>
+                <Text bold color={theme.primary}>
+                  {formatBytes(memory.kernelMemory.value.nonPagedPoolBytes)}
+                </Text>
+              </Text>
+            </Box>
+            <Box flexDirection="column" width="50%">
+              <Text>
+                <Text color={theme.muted}>System File Cache: </Text>
+                <Text bold color={theme.secondary}>
+                  {formatBytes(memory.kernelMemory.value.systemCacheBytes)}
+                </Text>
+              </Text>
+              <Text>
+                <Text color={theme.muted}>Commit Peak: </Text>
+                <Text bold color={theme.secondary}>
+                  {formatBytes(memory.kernelMemory.value.commitPeakBytes)}
+                </Text>
+              </Text>
+            </Box>
+          </Box>
+        </Box>
+      ) : null}
+
       {/* Top Memory Consumers */}
       <Box
         borderStyle="single"

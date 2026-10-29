@@ -36,6 +36,8 @@ export const OverviewView: React.FC<Props> = ({
   const gpuUtil =
     primaryGpu?.utilization.status === 'available' ? primaryGpu.utilization.value : null;
 
+  const km = memory.kernelMemory?.status === 'available' ? memory.kernelMemory.value : null;
+
   return (
     <Box flexDirection="column" paddingX={1}>
       {/* OS Banner */}
@@ -44,11 +46,24 @@ export const OverviewView: React.FC<Props> = ({
           {os.distro} ({os.arch}) — Kernel: {os.release}
         </Text>
         <Text color={theme.muted}>
+          {km ? (
+            <Text>
+              Handles:{' '}
+              <Text bold color={theme.accent}>
+                {km.systemHandles.toLocaleString()}
+              </Text>{' '}
+              | Threads:{' '}
+              <Text bold color={theme.accent}>
+                {km.systemThreads.toLocaleString()}
+              </Text>{' '}
+              |{' '}
+            </Text>
+          ) : null}
           Processes:{' '}
           <Text bold color={theme.primary}>
             {snapshot.totalProcessCount}
           </Text>{' '}
-          | Sample Latency: {snapshot.samplingDurationMs}ms
+          | Latency: {snapshot.samplingDurationMs}ms
         </Text>
       </Box>
 
@@ -113,6 +128,15 @@ export const OverviewView: React.FC<Props> = ({
               Swap: {formatBytes(memory.swap.usedBytes)} ({formatPercent(memory.swap.utilization)})
             </Text>
           </Box>
+          {km ? (
+            <Box justifyContent="space-between" marginTop={0}>
+              <Text color={theme.muted}>
+                Paged: {formatBytes(km.pagedPoolBytes)} | Non-paged:{' '}
+                {formatBytes(km.nonPagedPoolBytes)}
+              </Text>
+              <Text color={theme.muted}>Cache: {formatBytes(km.systemCacheBytes)}</Text>
+            </Box>
+          ) : null}
           <Box marginTop={1}>
             <Sparkline
               values={memoryHistory}

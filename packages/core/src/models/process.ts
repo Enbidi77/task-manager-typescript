@@ -19,9 +19,13 @@ export interface ProcessMetrics {
   executablePath: MetricValue<string>;
   diskIo: MetricValue<{ readBytesPerSec: number; writeBytesPerSec: number }>;
   networkIo: MetricValue<{ rxBytesPerSec: number; txBytesPerSec: number }>;
+  handles?: MetricValue<number>;
+  privateWorkingSetBytes?: MetricValue<number>;
+  peakWorkingSetBytes?: MetricValue<number>;
+  pageFaults?: MetricValue<number>;
 }
 
-export type ProcessSortField = 'cpu' | 'memory' | 'pid' | 'name' | 'threads';
+export type ProcessSortField = 'cpu' | 'memory' | 'pid' | 'name' | 'threads' | 'handles';
 export type ProcessSortDirection = 'asc' | 'desc';
 
 export interface ProcessFilterOptions {

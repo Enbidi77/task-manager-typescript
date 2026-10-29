@@ -13,6 +13,16 @@ export interface VirtualMemoryMetrics {
   commitUtilization: number; // 0 to 100 %
 }
 
+export interface WindowsKernelMemoryMetrics {
+  pagedPoolBytes: number;
+  nonPagedPoolBytes: number;
+  systemCacheBytes: number;
+  commitPeakBytes: number;
+  systemHandles: number;
+  systemThreads: number;
+  processCount: number;
+}
+
 export interface MemoryMetrics {
   totalBytes: number;
   usedBytes: number;
@@ -21,6 +31,7 @@ export interface MemoryMetrics {
   utilization: number; // 0 to 100 %
   swap: MemorySwapMetrics;
   virtualMemory: MetricValue<VirtualMemoryMetrics>;
+  kernelMemory?: MetricValue<WindowsKernelMemoryMetrics>;
   cachedBytes?: number;
   buffersBytes?: number;
   platformSemantics: {

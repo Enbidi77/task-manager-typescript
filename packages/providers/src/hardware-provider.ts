@@ -2,6 +2,7 @@ import si from 'systeminformation';
 import {
   IHardwareMonitor,
   HardwareMetrics,
+  PowerStatusMetrics,
   TemperatureSensor,
   ProviderMetadata,
   ProviderHealth,
@@ -9,6 +10,7 @@ import {
   unavailable,
 } from '@taskpulse/core';
 import { ILogger } from '@taskpulse/logging';
+import { getWin32PowerStatus } from './windows/native-adapter.js';
 
 export class SystemHardwareProvider implements IHardwareMonitor {
   readonly metadata: ProviderMetadata = {
@@ -22,6 +24,12 @@ export class SystemHardwareProvider implements IHardwareMonitor {
         name: 'Thermal Sensors',
         status: 'supported',
         description: 'Package and per-core thermal readings',
+      },
+      {
+        id: 'hw-power',
+        name: 'Power & Battery Status',
+        status: 'supported',
+        description: 'AC power line status, battery percentage and charging state',
       },
     ],
   };
@@ -59,6 +67,59 @@ export class SystemHardwareProvider implements IHardwareMonitor {
         maxCelsius: temp?.max,
       }));
 
+      // Collect power & battery status
+      let powerStatus;
+      if (process.platform === 'win32') {
+        const winPower = getWin32PowerStatus();
+        if (winPower) {
+          powerStatus = available<PowerStatusMetrics>(winPower);
+        }
+      }
+
+      if (!powerStatus) {
+        try {
+          const battery = await si.battery().catch(() => null);
+          if (battery && battery.hasBattery) {
+            const isAc = battery.acConnected;
+            const isCharging = battery.isCharging;
+            const pct = battery.percent >= 0 ? battery.percent : null;
+            let statusDesc = 'On Battery';
+            if (isCharging) {
+              statusDesc = `Charging (${pct ?? 0}%)`;
+            } else if (isAc) {
+              statusDesc = `Plugged in (${pct ?? 100}%)`;
+            } else {
+              statusDesc = `Discharging (${pct ?? 0}%)`;
+            }
+
+            powerStatus = available<PowerStatusMetrics>({
+              isAcOnline: isAc,
+              hasBattery: true,
+              batteryPercent: pct,
+              batteryLifeRemainingSeconds:
+                battery.timeRemaining && battery.timeRemaining > 0
+                  ? battery.timeRemaining * 60
+                  : null,
+              isCharging,
+              statusDescription: statusDesc,
+            });
+          } else if (battery && !battery.hasBattery) {
+            powerStatus = available<PowerStatusMetrics>({
+              isAcOnline: true,
+              hasBattery: false,
+              batteryPercent: null,
+              batteryLifeRemainingSeconds: null,
+              isCharging: false,
+              statusDescription: 'AC Power (Desktop / No battery)',
+            });
+          } else {
+            powerStatus = unavailable<PowerStatusMetrics>('Power sensor not available');
+          }
+        } catch {
+          powerStatus = unavailable<PowerStatusMetrics>('Power sensor query failed');
+        }
+      }
+
       const durationMs = Math.round(performance.now() - start);
       this.health = {
         healthy: true,
@@ -73,6 +134,7 @@ export class SystemHardwareProvider implements IHardwareMonitor {
         fans: [],
         voltages: [],
         powers: [],
+        powerStatus,
         timestamp: Date.now(),
       };
     } catch (err: unknown) {

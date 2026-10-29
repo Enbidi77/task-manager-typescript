@@ -12,6 +12,7 @@ import {
   unavailable,
 } from '@taskpulse/core';
 import { ILogger } from '@taskpulse/logging';
+import { getWin32ProcessTelemetry, terminateWin32Process } from './windows/native-adapter.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -32,7 +33,13 @@ export class SystemProcessProvider implements IProcessMonitor {
         id: 'proc-terminate',
         name: 'Process Termination',
         status: 'supported',
-        description: 'Graceful or force termination',
+        description: 'Graceful or force termination via Win32 FFI or OS signals',
+      },
+      {
+        id: 'proc-native-telemetry',
+        name: 'Win32 Process Telemetry',
+        status: process.platform === 'win32' ? 'supported' : 'unsupported',
+        description: 'Query open handles, private working set, and page faults via Win32 API',
       },
     ],
   };
@@ -75,6 +82,29 @@ export class SystemProcessProvider implements IProcessMonitor {
         const threads = rawThreads && rawThreads > 0 ? available(rawThreads) : unavailable('N/A');
         const execPath = p.path ? available(p.path) : unavailable('Access Denied');
 
+        let handles;
+        let privateWorkingSetBytes;
+        let peakWorkingSetBytes;
+        let pageFaults;
+
+        if (process.platform === 'win32') {
+          const telemetry = getWin32ProcessTelemetry(p.pid);
+          if (telemetry) {
+            if (telemetry.handles !== undefined) {
+              handles = available(telemetry.handles);
+            }
+            if (telemetry.privateWorkingSetBytes !== undefined) {
+              privateWorkingSetBytes = available(telemetry.privateWorkingSetBytes);
+            }
+            if (telemetry.peakWorkingSetBytes !== undefined) {
+              peakWorkingSetBytes = available(telemetry.peakWorkingSetBytes);
+            }
+            if (telemetry.pageFaults !== undefined) {
+              pageFaults = available(telemetry.pageFaults);
+            }
+          }
+        }
+
         return {
           pid: p.pid,
           parentPid: p.parentPid || undefined,
@@ -90,6 +120,10 @@ export class SystemProcessProvider implements IProcessMonitor {
           priority: p.priority || undefined,
           startedAt: p.started || undefined,
           executablePath: execPath,
+          handles,
+          privateWorkingSetBytes,
+          peakWorkingSetBytes,
+          pageFaults,
           diskIo: unavailable('Requires native per-process ETW provider'),
           networkIo: unavailable('Requires native per-process socket filter'),
         };
@@ -125,6 +159,13 @@ export class SystemProcessProvider implements IProcessMonitor {
 
     try {
       if (process.platform === 'win32') {
+        // Fast path: direct native Win32 TerminateProcess call
+        const terminated = terminateWin32Process(pid, force ? 1 : 0);
+        if (terminated) {
+          return true;
+        }
+
+        // Fallback: spawn taskkill utility
         const args = ['/PID', String(pid)];
         if (force) args.push('/F');
         await execFileAsync('taskkill', args);

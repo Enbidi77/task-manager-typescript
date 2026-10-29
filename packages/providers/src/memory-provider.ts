@@ -3,11 +3,14 @@ import si from 'systeminformation';
 import {
   IMemoryMonitor,
   MemoryMetrics,
+  WindowsKernelMemoryMetrics,
   ProviderMetadata,
   ProviderHealth,
   available,
+  unavailable,
 } from '@taskpulse/core';
 import { ILogger } from '@taskpulse/logging';
+import { getWin32PerformanceInfo } from './windows/native-adapter.js';
 
 export class SystemMemoryProvider implements IMemoryMonitor {
   readonly metadata: ProviderMetadata = {
@@ -33,6 +36,12 @@ export class SystemMemoryProvider implements IMemoryMonitor {
         name: 'Virtual Memory & Commit',
         status: 'supported',
         description: 'Commit charge metrics',
+      },
+      {
+        id: 'memory-kernel-pools',
+        name: 'Kernel Pools & Handles',
+        status: process.platform === 'win32' ? 'supported' : 'unsupported',
+        description: 'Paged / Non-paged pool, cache, and system handles via Win32 FFI',
       },
     ],
   };
@@ -80,6 +89,22 @@ export class SystemMemoryProvider implements IMemoryMonitor {
         ? 'Windows reports Working Set and Standby memory. "Available" includes zeroed, free, and standby pages. Virtual memory reflects the system Commit Charge against the Commit Limit.'
         : 'Linux distinguishes buffers and cached pages from unallocated memory. "Available" estimates how much memory can be started without swapping.';
 
+      let kernelMemory;
+      if (isWin) {
+        const perf = getWin32PerformanceInfo();
+        if (perf) {
+          kernelMemory = available<WindowsKernelMemoryMetrics>(perf);
+        } else {
+          kernelMemory = unavailable<WindowsKernelMemoryMetrics>(
+            'Win32 PSAPI performance info unavailable',
+          );
+        }
+      } else {
+        kernelMemory = unavailable<WindowsKernelMemoryMetrics>(
+          'Kernel memory pools supported on Windows via native PSAPI',
+        );
+      }
+
       const durationMs = Math.round(performance.now() - start);
       this.health = {
         healthy: true,
@@ -105,6 +130,7 @@ export class SystemMemoryProvider implements IMemoryMonitor {
           commitLimitBytes,
           commitUtilization,
         }),
+        kernelMemory,
         cachedBytes: mem.buffcache || 0,
         buffersBytes: mem.buffers || 0,
         platformSemantics: {

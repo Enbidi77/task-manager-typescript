@@ -56,6 +56,12 @@ export const ProcessesView: React.FC<Props> = ({
         comparison = bT - aT;
         break;
       }
+      case 'handles': {
+        const aH = a.handles?.status === 'available' ? a.handles.value : 0;
+        const bH = b.handles?.status === 'available' ? b.handles.value : 0;
+        comparison = bH - aH;
+        break;
+      }
     }
     return sortDirection === 'asc' ? -comparison : comparison;
   });
@@ -108,22 +114,22 @@ export const ProcessesView: React.FC<Props> = ({
             CPU %{sortIndicator('cpu')}
           </Text>
         </Box>
-        <Box width={12}>
+        <Box width={11}>
           <Text bold color={theme.primary}>
             Memory{sortIndicator('memory')}
           </Text>
         </Box>
-        <Box width={10}>
+        <Box width={9}>
           <Text bold color={theme.primary}>
-            Mem %
+            Handles{sortIndicator('handles')}
           </Text>
         </Box>
-        <Box width={10}>
+        <Box width={9}>
           <Text bold color={theme.primary}>
             Threads{sortIndicator('threads')}
           </Text>
         </Box>
-        <Box width={10}>
+        <Box width={9}>
           <Text bold color={theme.primary}>
             State
           </Text>
@@ -142,6 +148,8 @@ export const ProcessesView: React.FC<Props> = ({
           const isSelected = absIdx === safeSelected;
           const threadsText =
             proc.threads.status === 'available' ? String(proc.threads.value) : '-';
+          const handlesText =
+            proc.handles?.status === 'available' ? String(proc.handles.value) : '-';
 
           return (
             <Box
@@ -174,22 +182,22 @@ export const ProcessesView: React.FC<Props> = ({
                   {formatPercent(proc.cpuPercent)}
                 </Text>
               </Box>
-              <Box width={12}>
+              <Box width={11}>
                 <Text>{formatBytes(proc.memoryBytes)}</Text>
               </Box>
-              <Box width={10}>
-                <Text>{formatPercent(proc.memoryPercent)}</Text>
+              <Box width={9}>
+                <Text color={theme.accent}>{handlesText}</Text>
               </Box>
-              <Box width={10}>
+              <Box width={9}>
                 <Text color={theme.muted}>{threadsText}</Text>
               </Box>
-              <Box width={10}>
+              <Box width={9}>
                 <Text color={proc.state === 'running' ? theme.success : theme.muted}>
                   {proc.state.slice(0, 8)}
                 </Text>
               </Box>
               <Box flexGrow={1}>
-                <Text color={theme.muted}>{(proc.user || '').slice(0, 20)}</Text>
+                <Text color={theme.muted}>{(proc.user || '').slice(0, 18)}</Text>
               </Box>
             </Box>
           );
