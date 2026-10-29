@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import process from 'node:process';
 import { AppConfig, AppConfigSchema } from './schema.js';
 
 export interface ConfigOverrides {

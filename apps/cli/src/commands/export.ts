@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import chalk from 'chalk';
 import { createServiceContainer } from '../di/container.js';
 import { CsvExporter, JsonExporter } from '@taskpulse/exporters';

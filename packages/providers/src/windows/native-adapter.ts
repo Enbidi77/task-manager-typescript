@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import process from 'node:process';
 import { WindowsKernelMemoryMetrics, PowerStatusMetrics } from '@taskpulse/core';
 
 // Types for Win32 API returns

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import process from 'node:process';
 import { Command } from 'commander';
 import { runMonitor } from './commands/monitor.js';
 import { runSummary } from './commands/summary.js';

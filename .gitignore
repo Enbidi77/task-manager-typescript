@@ -12,3 +12,4 @@ pnpm-debug.log*
 Thumbs.db
 taskpulse-debug.log
 taskpulse.log
+*.tsbuildinfo

@@ -1,4 +1,5 @@
 import os from 'node:os';
+import process from 'node:process';
 import chalk from 'chalk';
 import { createServiceContainer } from '../di/container.js';
 import { isWin32NativeAvailable, getWin32PerformanceInfo } from '@taskpulse/providers';

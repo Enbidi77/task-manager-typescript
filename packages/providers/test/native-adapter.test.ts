@@ -1,3 +1,4 @@
+import process from 'node:process';
 import { describe, it, expect } from 'vitest';
 import {
   isWin32NativeAvailable,

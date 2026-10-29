@@ -1,3 +1,4 @@
+import process from 'node:process';
 import si from 'systeminformation';
 import {
   IHardwareMonitor,

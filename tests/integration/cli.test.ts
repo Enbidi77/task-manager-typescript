@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
+import process from 'node:process';
 
 const execFileAsync = promisify(execFile);
 const cliPath = path.resolve(process.cwd(), 'apps/cli/dist/index.js');

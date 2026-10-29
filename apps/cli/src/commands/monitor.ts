@@ -1,3 +1,4 @@
+import process from 'node:process';
 import React from 'react';
 import { render } from 'ink';
 import { App } from '@taskpulse/terminal-ui';

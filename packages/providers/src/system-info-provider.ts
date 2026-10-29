@@ -1,4 +1,5 @@
 import os from 'node:os';
+import process from 'node:process';
 import si from 'systeminformation';
 import { ISystemInfoMonitor, OsInfo } from '@taskpulse/core';
 
