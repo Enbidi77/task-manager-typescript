@@ -1,0 +1,39 @@
+{
+  "name": "@taskpulse/cli",
+  "version": "0.1.0",
+  "description": "TaskPulse CLI — Extensible System Resource Monitor",
+  "type": "module",
+  "bin": {
+    "taskpulse": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm",
+    "dev": "tsx src/index.ts",
+    "start": "node ./dist/index.js",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@taskpulse/config": "workspace:*",
+    "@taskpulse/core": "workspace:*",
+    "@taskpulse/exporters": "workspace:*",
+    "@taskpulse/logging": "workspace:*",
+    "@taskpulse/monitoring": "workspace:*",
+    "@taskpulse/providers": "workspace:*",
+    "@taskpulse/shared": "workspace:*",
+    "@taskpulse/storage": "workspace:*",
+    "@taskpulse/terminal-ui": "workspace:*",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "ink": "^5.1.0",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "@types/react": "^18.3.18",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.6"
+  }
+}

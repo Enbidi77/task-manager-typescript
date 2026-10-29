@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false
+  },
+  "include": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/shared" },
+    { "path": "./packages/config" },
+    { "path": "./packages/logging" },
+    { "path": "./packages/storage" },
+    { "path": "./packages/exporters" },
+    { "path": "./packages/plugin-api" },
+    { "path": "./packages/testing" },
+    { "path": "./packages/monitoring" },
+    { "path": "./packages/providers" },
+    { "path": "./packages/terminal-ui" },
+    { "path": "./apps/cli" }
+  ]
+}
