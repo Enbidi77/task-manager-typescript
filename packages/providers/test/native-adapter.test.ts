@@ -5,6 +5,7 @@ import {
   getWin32PerformanceInfo,
   getWin32PowerStatus,
   getWin32ProcessTelemetry,
+  getWin32ProcessThreadCounts,
   terminateWin32Process,
 } from '../src/windows/native-adapter.js';
 
@@ -58,6 +59,18 @@ describe('Win32 Native Adapter via koffi', () => {
     it('should safely fail to terminate non-existent PID', () => {
       const res = terminateWin32Process(-1);
       expect(res).toBe(false);
+    });
+
+    it('should enumerate process thread counts on Windows', () => {
+      const threadMap = getWin32ProcessThreadCounts();
+      expect(threadMap).not.toBeNull();
+      if (threadMap) {
+        expect(threadMap.size).toBeGreaterThan(0);
+        // Current process should exist in map and have threads > 0
+        const currentThreads = threadMap.get(process.pid);
+        expect(currentThreads).toBeDefined();
+        expect(currentThreads).toBeGreaterThan(0);
+      }
     });
   }
 });

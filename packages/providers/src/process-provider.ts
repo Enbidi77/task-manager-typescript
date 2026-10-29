@@ -13,7 +13,11 @@ import {
   unavailable,
 } from '@taskpulse/core';
 import { ILogger } from '@taskpulse/logging';
-import { getWin32ProcessTelemetry, terminateWin32Process } from './windows/native-adapter.js';
+import {
+  getWin32ProcessTelemetry,
+  getWin32ProcessThreadCounts,
+  terminateWin32Process,
+} from './windows/native-adapter.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -66,6 +70,7 @@ export class SystemProcessProvider implements IProcessMonitor {
     try {
       const procData = await si.processes();
       const list = procData.list || [];
+      const threadCounts = process.platform === 'win32' ? getWin32ProcessThreadCounts() : null;
 
       const processes: ProcessMetrics[] = list.map((p) => {
         let state: ProcessState = 'unknown';
@@ -79,8 +84,15 @@ export class SystemProcessProvider implements IProcessMonitor {
         else state = 'sleeping';
 
         const memoryBytes = (p.memRss || p.mem || 0) * 1024; // si returns memory in KB
+        const winThreads = threadCounts?.get(p.pid);
         const rawThreads = (p as unknown as { threads?: number }).threads;
-        const threads = rawThreads && rawThreads > 0 ? available(rawThreads) : unavailable('N/A');
+        const threadVal =
+          winThreads !== undefined
+            ? winThreads
+            : rawThreads && rawThreads > 0
+              ? rawThreads
+              : undefined;
+        const threads = threadVal !== undefined ? available(threadVal) : unavailable('N/A');
         const execPath = p.path ? available(p.path) : unavailable('Access Denied');
 
         let handles;

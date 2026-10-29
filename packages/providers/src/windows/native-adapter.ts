@@ -8,6 +8,7 @@ export interface Win32ProcessTelemetry {
   privateWorkingSetBytes?: number;
   peakWorkingSetBytes?: number;
   pageFaults?: number;
+  threads?: number;
 }
 
 interface Win32Bindings {
@@ -20,6 +21,10 @@ interface Win32Bindings {
   getProcessMemoryInfo: (handle: unknown, out: Record<string, unknown>, cb: number) => boolean;
   sizeofProcessMemoryCountersEx: number;
   terminateProcess: (handle: unknown, exitCode: number) => boolean;
+  createToolhelp32Snapshot: (dwFlags: number, th32ProcessId: number) => unknown;
+  process32FirstW: (hSnapshot: unknown, lppe: Record<string, unknown>) => boolean;
+  process32NextW: (hSnapshot: unknown, lppe: Record<string, unknown>) => boolean;
+  sizeofProcessEntry32W: number;
 }
 
 const PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
@@ -85,6 +90,19 @@ function initWin32Bindings(): Win32Bindings | null {
       PrivateUsage: 'size_t',
     });
 
+    const PROCESSENTRY32W = koffi.struct('PROCESSENTRY32W', {
+      dwSize: 'uint32_t',
+      cntUsage: 'uint32_t',
+      th32ProcessID: 'uint32_t',
+      th32DefaultHeapID: 'uintptr_t',
+      th32ModuleID: 'uint32_t',
+      cntThreads: 'uint32_t',
+      th32ParentProcessID: 'uint32_t',
+      pcPriClassBase: 'int32_t',
+      dwFlags: 'uint32_t',
+      szExeFile: koffi.array('char16_t', 260),
+    });
+
     const getPerformanceInfo = psapi.func(
       'bool __stdcall GetPerformanceInfo(_Out_ PERFORMANCE_INFORMATION *pPerformanceInformation, uint32_t cb)',
     );
@@ -104,6 +122,15 @@ function initWin32Bindings(): Win32Bindings | null {
     const terminateProcess = kernel32.func(
       'bool __stdcall TerminateProcess(void* hProcess, uint32_t uExitCode)',
     );
+    const createToolhelp32Snapshot = kernel32.func(
+      'void* __stdcall CreateToolhelp32Snapshot(uint32_t dwFlags, uint32_t th32ProcessID)',
+    );
+    const process32FirstW = kernel32.func(
+      'bool __stdcall Process32FirstW(void* hSnapshot, _Inout_ PROCESSENTRY32W *lppe)',
+    );
+    const process32NextW = kernel32.func(
+      'bool __stdcall Process32NextW(void* hSnapshot, _Inout_ PROCESSENTRY32W *lppe)',
+    );
 
     bindings = {
       getPerformanceInfo,
@@ -115,6 +142,10 @@ function initWin32Bindings(): Win32Bindings | null {
       getProcessMemoryInfo,
       sizeofProcessMemoryCountersEx: koffi.sizeof(PROCESS_MEMORY_COUNTERS_EX),
       terminateProcess,
+      createToolhelp32Snapshot,
+      process32FirstW,
+      process32NextW,
+      sizeofProcessEntry32W: koffi.sizeof(PROCESSENTRY32W),
     };
 
     return bindings;
@@ -199,6 +230,33 @@ export function getWin32PowerStatus(): PowerStatusMetrics | null {
       isCharging,
       statusDescription,
     };
+  } catch {
+    return null;
+  }
+}
+
+export function getWin32ProcessThreadCounts(): Map<number, number> | null {
+  const b = initWin32Bindings();
+  if (!b) return null;
+
+  try {
+    const TH32CS_SNAPPROCESS = 0x00000002;
+    const hSnap = b.createToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (!hSnap) return null;
+
+    try {
+      const threadMap = new Map<number, number>();
+      const entry: Record<string, unknown> = { dwSize: b.sizeofProcessEntry32W };
+      let ok = b.process32FirstW(hSnap, entry);
+      while (ok) {
+        threadMap.set(Number(entry.th32ProcessID), Number(entry.cntThreads));
+        entry.dwSize = b.sizeofProcessEntry32W;
+        ok = b.process32NextW(hSnap, entry);
+      }
+      return threadMap;
+    } finally {
+      b.closeHandle(hSnap);
+    }
   } catch {
     return null;
   }
