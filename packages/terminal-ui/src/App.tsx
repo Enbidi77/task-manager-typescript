@@ -54,9 +54,15 @@ export const App: React.FC<AppProps> = ({ coordinator, config }) => {
   useEffect(() => {
     const unsub = coordinator.onSnapshot((newSnap) => {
       setSnapshot(newSnap);
+      if (procForDetails) {
+        const liveProc = newSnap.processes.find((p) => p.pid === procForDetails.pid);
+        if (liveProc) {
+          setProcForDetails(liveProc);
+        }
+      }
     });
     return () => unsub();
-  }, [coordinator]);
+  }, [coordinator, procForDetails]);
 
   // Notice timeout
   useEffect(() => {
@@ -231,96 +237,97 @@ export const App: React.FC<AppProps> = ({ coordinator, config }) => {
         </Box>
       )}
 
-      {/* Main View Area */}
-      <Box marginY={0}>
-        {activeView === ViewId.OVERVIEW && (
-          <OverviewView
-            snapshot={snapshot}
-            cpuHistory={cpuHistory}
-            memoryHistory={memHistory}
-            diskHistory={diskHistory}
-            networkHistory={netHistory}
-            theme={theme}
-          />
-        )}
+      {/* Main View Area / Modals */}
+      <Box marginY={0} flexDirection="column">
+        {showHelp ? (
+          <Box paddingY={1} justifyContent="center" alignItems="center">
+            <HelpModal theme={theme} onClose={() => setShowHelp(false)} />
+          </Box>
+        ) : procForKill ? (
+          <Box paddingY={1} justifyContent="center" alignItems="center">
+            <ProcessKillModal process={procForKill} theme={theme} />
+          </Box>
+        ) : procForDetails ? (
+          <Box paddingY={1} justifyContent="center" alignItems="center">
+            <ProcessDetailsModal process={procForDetails} theme={theme} />
+          </Box>
+        ) : (
+          <>
+            {activeView === ViewId.OVERVIEW && (
+              <OverviewView
+                snapshot={snapshot}
+                cpuHistory={cpuHistory}
+                memoryHistory={memHistory}
+                diskHistory={diskHistory}
+                networkHistory={netHistory}
+                theme={theme}
+              />
+            )}
 
-        {activeView === ViewId.PROCESSES && (
-          <ProcessesView
-            processes={snapshot.processes}
-            selectedIndex={selectedProcIdx}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            searchQuery={searchQuery}
-            theme={theme}
-          />
-        )}
+            {activeView === ViewId.PROCESSES && (
+              <ProcessesView
+                processes={snapshot.processes}
+                selectedIndex={selectedProcIdx}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                searchQuery={searchQuery}
+                theme={theme}
+              />
+            )}
 
-        {activeView === ViewId.CPU && (
-          <CpuView
-            cpu={snapshot.cpu}
-            history={cpuHistory}
-            topProcesses={snapshot.processes}
-            theme={theme}
-          />
-        )}
+            {activeView === ViewId.CPU && (
+              <CpuView
+                cpu={snapshot.cpu}
+                history={cpuHistory}
+                topProcesses={snapshot.processes}
+                theme={theme}
+              />
+            )}
 
-        {activeView === ViewId.MEMORY && (
-          <MemoryView
-            memory={snapshot.memory}
-            history={memHistory}
-            topProcesses={snapshot.processes}
-            theme={theme}
-          />
-        )}
+            {activeView === ViewId.MEMORY && (
+              <MemoryView
+                memory={snapshot.memory}
+                history={memHistory}
+                topProcesses={snapshot.processes}
+                theme={theme}
+              />
+            )}
 
-        {activeView === ViewId.DISKS && (
-          <DisksView disk={snapshot.disk} history={diskHistory} theme={theme} />
-        )}
+            {activeView === ViewId.DISKS && (
+              <DisksView disk={snapshot.disk} history={diskHistory} theme={theme} />
+            )}
 
-        {activeView === ViewId.NETWORK && (
-          <NetworkView network={snapshot.network} history={netHistory} theme={theme} />
-        )}
+            {activeView === ViewId.NETWORK && (
+              <NetworkView network={snapshot.network} history={netHistory} theme={theme} />
+            )}
 
-        {activeView === ViewId.GPU && (
-          <GpuView gpu={snapshot.gpu} history={gpuHistory} theme={theme} />
-        )}
+            {activeView === ViewId.GPU && (
+              <GpuView gpu={snapshot.gpu} history={gpuHistory} theme={theme} />
+            )}
 
-        {activeView === ViewId.HARDWARE && (
-          <HardwareView hardware={snapshot.hardware} theme={theme} />
-        )}
+            {activeView === ViewId.HARDWARE && (
+              <HardwareView hardware={snapshot.hardware} theme={theme} />
+            )}
 
-        {activeView === ViewId.ALERTS && (
-          <AlertsView
-            rules={coordinator.getAlertService().getRules()}
-            activeIncidents={coordinator.getAlertService().getActiveIncidents()}
-            incidentHistory={coordinator.getAlertService().getIncidentHistory()}
-            theme={theme}
-          />
-        )}
+            {activeView === ViewId.ALERTS && (
+              <AlertsView
+                rules={coordinator.getAlertService().getRules()}
+                activeIncidents={coordinator.getAlertService().getActiveIncidents()}
+                incidentHistory={coordinator.getAlertService().getIncidentHistory()}
+                theme={theme}
+              />
+            )}
 
-        {activeView === ViewId.SETTINGS && (
-          <SettingsView config={config} providerStatus={snapshot.providerStatus} theme={theme} />
+            {activeView === ViewId.SETTINGS && (
+              <SettingsView
+                config={config}
+                providerStatus={snapshot.providerStatus}
+                theme={theme}
+              />
+            )}
+          </>
         )}
       </Box>
-
-      {/* Modal Overlays */}
-      {showHelp && (
-        <Box position="absolute" marginTop={3} marginLeft={4}>
-          <HelpModal theme={theme} onClose={() => setShowHelp(false)} />
-        </Box>
-      )}
-
-      {procForKill && (
-        <Box position="absolute" marginTop={5} marginLeft={8}>
-          <ProcessKillModal process={procForKill} theme={theme} />
-        </Box>
-      )}
-
-      {procForDetails && (
-        <Box position="absolute" marginTop={3} marginLeft={4}>
-          <ProcessDetailsModal process={procForDetails} theme={theme} />
-        </Box>
-      )}
 
       {/* Footer Keybindings */}
       <Footer
